@@ -76,21 +76,16 @@ def flip(img,code):
 # MASKS FOR GREEN SCREEN #
 ##########################
 def mask(img):
-    return cv.threshold(lab(img)[:,:,1],127,255,cv.THRESH_BINARY+cv.THRESH_OTSU)[1]
+    mask = cv.threshold(lab(img)[:,:,1],127,255,cv.THRESH_BINARY+cv.THRESH_OTSU)[1]
+    #CONTROL
+    cv.imshow('Mask Result',applyMask(img,readFile("RawData/background/Background1.jpg",700),mask))
+    ######## 
+    return cleanEdges(mask)
+    
+    
 
 def applyMask(img,background,mask):
     return background - cv.bitwise_and(background,background,mask=mask) + cv.bitwise_and(img,img,mask=mask)
-
-#DEPRECATED - LOL
-# def mask(img):
-#     aChannel = lab(img)[:,:,1]
-#     threshold = cv.threshold(aChannel,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU)[1]
-#     mask = cv.bitwise_and(img,img,mask=threshold)
-#     mlab=lab(mask)
-#     dst = cv.normalize(mlab[:,:,1],dst=None,alpha=0,beta=255,norm_type=cv.NORM_MINMAX,dtype=cv.CV_8U)
-#     thresholdValue = 100
-#     dstThreshold = cv.threshold(dst,thresholdValue,255,cv.THRESH_BINARY_INV)[1]
-#     return dstThreshold+threshold
 
 ####################
 # HELPER FUNCTIONS #
@@ -98,23 +93,25 @@ def applyMask(img,background,mask):
 def readFile(filePath,size):
     img = cv.imread(filePath)
     return resize(img,size,size)
-    
 
+def cleanEdges(mask):
+    sharpen_kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
+    result = cv.filter2D(erode(mask-edges(mask)), -1, sharpen_kernel)
+    return cv.filter2D(erode(result-edges(result)), -1, sharpen_kernel)
+    
 ########
 # MAIN #
 ########
 def main():
-    imageSize = 500
-    image = readFile("RawData/images/Image2.jpg",imageSize)
+    imageSize = 700
+    image = readFile("RawData/images/Image5.jpg",imageSize)
     background = readFile("RawData/background/Background1.jpg",imageSize)
 
-    imgMask = mask(resize(image,imageSize,imageSize))
+    imgMask = mask(image)
     maskResult = applyMask(image,background,imgMask)
-    blurredMaskResult = bilateralBlur(maskResult,21,30)
-    # sharpen_kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
-    # sharpenBlurResult = cv.filter2D(blurredMaskResult, -1, sharpen_kernel)
-    cv.imshow('Mask Result',maskResult)
-    cv.imshow('Blur Result',blurredMaskResult)
+    # blurredMaskResult = bilateralBlur(maskResult,21,30)
+    cv.imshow('Mask Result extra',maskResult)
+    # cv.imshow('Blur Result',blurredMaskResult)
     # cv.imshow('Sharpened Blur Result', gaussianBlur(sharpenBlurResult,1))
     # cv.imshow('Sharpened Blur Result',sharpenBlurResult)
 
