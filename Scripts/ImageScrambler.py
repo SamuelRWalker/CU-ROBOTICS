@@ -1,10 +1,44 @@
 import cv2 as cv
 import numpy as np
-import os
-import sys
 import random
-import glob
 import shutil
+
+########
+# TODO #
+########
+#-Research Image Distortion from cameras
+#-Research Motion Blur and how to implement in OpenCV
+#-Improve file system
+#-Dirty up images better
+
+###############
+# DESCRIPTION #
+###############
+# Author: Sam Walker
+# Date: 10/11/2022
+# Purpose: Created a dataset for computer vision AI
+# Description: Given green screened images output random dirty images with backgrounds
+
+####################
+# GLOBAL VARIABLES #
+####################
+# OUTPUT
+OUTPUT_ROOT = "OutputData/"
+OUTPUT_BLURTRANSLATEROTATE = OUTPUT_ROOT + "BlurTranslateRotate/"
+OUTPUT_TRANSLATEROTATE = OUTPUT_ROOT + "TranslateRotate/"
+
+# INPUT
+DATA_ROOT = "RawData/"
+IMAGE_ROOT = DATA_ROOT + "images/"
+BACKGROUND_ROOT = DATA_ROOT + "background/"
+IMAGE_BASE = "Image"
+BACKGROUND_BASE = "Background"
+FILE_TYPE = ".jpg"
+
+# CONST GLOBALS
+IMAGE_SIZE = 700
+NUM_IMAGES = 10
+NUM_BACKGROUNDS=28
 
 ################################
 # SIMPLE COLOR TRANSFORMATIONS #
@@ -94,17 +128,52 @@ def cleanEdges(mask):
     result = cv.filter2D(erode(mask-edges(mask)), -1, sharpen_kernel)
     return cv.filter2D(erode(result-edges(result)), -1, sharpen_kernel)
 
+def importFiles(root,base,fileType,numImages):
+    arr = []
+    for i in range(numImages):
+        arr.append(root + base + str(i+1) + fileType)
+    return arr
+
+def saveImage(outputFolderName,outputFileName,img):
+    cv.imwrite(outputFolderName + outputFileName + FILE_TYPE,img)
+    return
+
+def randomNumber(low,high):
+    return random.randint(low,high)
+
+###################
+# Generate Images #
+###################
+def generateImages(img,background,imgNum,backNum):
+    numOutput = 10
+    for i in range(numOutput):
+        # Random Vars
+        scaleFactor = 4
+        randx = randomNumber(-IMAGE_SIZE/scaleFactor,IMAGE_SIZE/scaleFactor)
+        randy = randomNumber(-IMAGE_SIZE/scaleFactor,IMAGE_SIZE/scaleFactor)
+        randrot = randomNumber(0,360)
+        randblur = randomNumber(5,100)
+
+        # TRANSLATE AND ROTATE
+        transrotated = applyMask(rotate(translate(img,randx,randy),randrot),background,rotate(translate(mask(img),randx,randy),randrot))
+        saveImage(OUTPUT_TRANSLATEROTATE,"transrotated" + str((i+1)*(imgNum+1)*(backNum*1)),transrotated)
+        saveImage(OUTPUT_BLURTRANSLATEROTATE,"blurtransrotated" + str((i+1)*(imgNum+1)*(backNum+1)),gaussianBlur(transrotated,randblur))
+    return
+
 ########
 # MAIN #
 ########
 def main():
-    imageSize = 700
-    image = readFile("RawData/images/Image3.jpg",imageSize)
-    background = readFile("RawData/background/Background1.jpg",imageSize)
+    images = importFiles(IMAGE_ROOT,IMAGE_BASE,FILE_TYPE,NUM_IMAGES)
+    backgrounds = importFiles(BACKGROUND_ROOT,BACKGROUND_BASE,FILE_TYPE,NUM_BACKGROUNDS)
 
-    maskResult = applyMask(image,background,mask(image))
-    cv.imshow('Mask Result extra',maskResult)
-    cv.waitKey(0)
+    for i in range(NUM_IMAGES):
+        for j in range(NUM_BACKGROUNDS):
+            image = readFile(images[i],IMAGE_SIZE)
+            background = readFile(backgrounds[j],IMAGE_SIZE)
+            generateImages(image,background,i,j)
+        
+    shutil.make_archive(OUTPUT_ROOT, format="zip", root_dir=OUTPUT_ROOT)
 
 if __name__ == "__main__":
     main()
