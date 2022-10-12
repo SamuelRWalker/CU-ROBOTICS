@@ -2,14 +2,14 @@ import cv2 as cv
 import numpy as np
 import random
 import shutil
+import os
 
 ########
 # TODO #
 ########
-#-Research Image Distortion from cameras
-#-Research Motion Blur and how to implement in OpenCV
-#-Improve file system
-#-Dirty up images better
+#-Research Image Distortion from cameras and how to implement (openCV)
+#-Research Motion Blur and how to implement (OpenCV)
+#-Rescale while maintaining aspect ratio (using zeroes and cv.bitwiseAnd)
 
 ###############
 # DESCRIPTION #
@@ -24,8 +24,12 @@ import shutil
 ####################
 # OUTPUT
 OUTPUT_ROOT = "OutputData/"
-OUTPUT_BLURTRANSLATEROTATE = OUTPUT_ROOT + "BlurTranslateRotate/"
-OUTPUT_TRANSLATEROTATE = OUTPUT_ROOT + "TranslateRotate/"
+OUTPUT_BLURRY = OUTPUT_ROOT + "Blurry/"
+OUTPUT_SHARP = OUTPUT_ROOT + "Sharp/"
+
+EXAMPLE_OUTPUT_ROOT = "ExampleOutputData/"
+EXAMPLE_OUTPUT_BLURRY = EXAMPLE_OUTPUT_ROOT + "Blurry/"
+EXAMPLE_OUTPUT_SHARP = EXAMPLE_OUTPUT_ROOT + "Sharp/"
 
 # INPUT
 DATA_ROOT = "RawData/"
@@ -38,7 +42,7 @@ FILE_TYPE = ".jpg"
 # CONST GLOBALS
 IMAGE_SIZE = 700
 NUM_IMAGES = 10
-NUM_BACKGROUNDS=28
+NUM_BACKGROUNDS= 28
 
 ################################
 # SIMPLE COLOR TRANSFORMATIONS #
@@ -141,23 +145,37 @@ def saveImage(outputFolderName,outputFileName,img):
 def randomNumber(low,high):
     return random.randint(low,high)
 
-###################
-# Generate Images #
-###################
-def generateImages(img,background,imgNum,backNum):
-    numOutput = 10
-    for i in range(numOutput):
-        # Random Vars
-        scaleFactor = 4
-        randx = randomNumber(-IMAGE_SIZE/scaleFactor,IMAGE_SIZE/scaleFactor)
-        randy = randomNumber(-IMAGE_SIZE/scaleFactor,IMAGE_SIZE/scaleFactor)
-        randrot = randomNumber(0,360)
-        randblur = randomNumber(5,100)
+#################
+# Generate Data #
+#################
+def generateData(img,background,numRun):
+    # Random Vars
+    scaleFactor = 4
+    randx = randomNumber(-IMAGE_SIZE/scaleFactor,IMAGE_SIZE/scaleFactor)
+    randy = randomNumber(-IMAGE_SIZE/scaleFactor,IMAGE_SIZE/scaleFactor)
+    randrot = randomNumber(0,360)
+    randblur = randomNumber(5,100)
 
-        # TRANSLATE AND ROTATE
+    # Create Output Folders
+    os.mkdir(OUTPUT_ROOT)
+    os.mkdir(OUTPUT_BLURRY)
+    os.mkdir(OUTPUT_SHARP)
+    os.mkdir(EXAMPLE_OUTPUT_ROOT)
+    os.mkdir(EXAMPLE_OUTPUT_BLURRY)
+    os.mkdir(EXAMPLE_OUTPUT_SHARP)
+
+    # Generate Data
+    finalRunAmount = 5
+    exampleRunAmount = 3
+    for i in range(finalRunAmount):
         transrotated = applyMask(rotate(translate(img,randx,randy),randrot),background,rotate(translate(mask(img),randx,randy),randrot))
-        saveImage(OUTPUT_TRANSLATEROTATE,"transrotated" + str((i+1)*(imgNum+1)*(backNum*1)),transrotated)
-        saveImage(OUTPUT_BLURTRANSLATEROTATE,"blurtransrotated" + str((i+1)*(imgNum+1)*(backNum+1)),gaussianBlur(transrotated,randblur))
+        # Output Data
+        saveImage(OUTPUT_BLURRY,"blurry" + str((i+1)*numRun),transrotated)
+        saveImage(OUTPUT_SHARP,"sharp" + str((i+1)*numRun),gaussianBlur(transrotated,randblur))
+        # Example Output Data
+        if(i<exampleRunAmount):
+            saveImage(EXAMPLE_OUTPUT_BLURRY,"blurry" + str((i+1)*numRun),transrotated)
+            saveImage(EXAMPLE_OUTPUT_SHARP,"sharp" + str((i+1)*numRun),gaussianBlur(transrotated,randblur))
     return
 
 ########
@@ -167,13 +185,25 @@ def main():
     images = importFiles(IMAGE_ROOT,IMAGE_BASE,FILE_TYPE,NUM_IMAGES)
     backgrounds = importFiles(BACKGROUND_ROOT,BACKGROUND_BASE,FILE_TYPE,NUM_BACKGROUNDS)
 
-    for i in range(NUM_IMAGES):
-        for j in range(NUM_BACKGROUNDS):
-            image = readFile(images[i],IMAGE_SIZE)
-            background = readFile(backgrounds[j],IMAGE_SIZE)
-            generateImages(image,background,i,j)
-        
+    shutil.rmtree(EXAMPLE_OUTPUT_ROOT)
+
+    # Final Case
+    # numRun = 0
+    # for i in range(NUM_IMAGES):
+    #     for j in range(NUM_BACKGROUNDS):
+    #         numRun+=1
+    #         image = readFile(images[i],IMAGE_SIZE)
+    #         background = readFile(backgrounds[j],IMAGE_SIZE)
+    #         generateData(image,background,numRun)
+
+    # Test Case
+    numRun = 1 
+    image = readFile(images[3],IMAGE_SIZE)
+    background = readFile(backgrounds[5],IMAGE_SIZE)
+    generateData(image,background,numRun)    
+
     shutil.make_archive(OUTPUT_ROOT, format="zip", root_dir=OUTPUT_ROOT)
+    shutil.rmtree(OUTPUT_ROOT)
 
 if __name__ == "__main__":
     main()
