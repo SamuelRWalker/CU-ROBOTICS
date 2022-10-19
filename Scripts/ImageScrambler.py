@@ -1,3 +1,4 @@
+from cmath import pi
 import cv2 as cv
 import numpy as np
 import random
@@ -8,15 +9,15 @@ import os
 # TODO #
 ########
 #-Research Image Distortion from cameras and how to implement (openCV)
-#-Research Motion Blur and how to implement (OpenCV)
-#-Rescale while maintaining aspect ratio (using zeroes and cv.bitwiseAnd)
+#-Make console output to watch it make files
+#-Improve upon the readme
 
 ###############
 # DESCRIPTION #
 ###############
 # Author: Sam Walker
 # Date: 10/11/2022
-# Purpose: Created a dataset for computer vision AI
+# Purpose: Create a dataset for computer vision AI for CU ROBOTICS
 # Description: Given green screened images output random dirty images with backgrounds
 
 ####################
@@ -73,6 +74,29 @@ def gaussianBlur(img,blurStrength=9):
 def bilateralBlur(img,radius=10,sigma=30):
     return cv.bilateralFilter(img,radius,sigma,sigma)
 
+def horizontalMotionBlur(img,blurStrength=5):
+    effect = np.zeros((blurStrength,blurStrength))
+    effect[1,:] = np.ones(blurStrength)
+    effect = effect/blurStrength
+    return cv.filter2D(img,-1,effect)
+
+def verticalMotionBlur(img,blurStrength=5):
+    effect = np.zeros((blurStrength,blurStrength))
+    effect[:,1] = np.ones(blurStrength)
+    effect = effect/blurStrength
+    return cv.filter2D(img,-1,effect)
+
+def motionBlur(img,horzBlurStrength=5,vertBlurStrength=5):
+    if(randomNumber(0,1)==1): vertBlurStrength = -vertBlurStrength
+    totalBlurStrength = round(np.power(np.power(horzBlurStrength,2) + np.power(vertBlurStrength,2),1/2))
+    angle = 90 - (np.arctan(horzBlurStrength/vertBlurStrength)*180)/pi
+    effect = np.zeros((totalBlurStrength,totalBlurStrength))
+    effect[(totalBlurStrength-1)// 2 , :] = np.ones(totalBlurStrength, dtype=np.float32)
+    effect = cv.warpAffine(effect, cv.getRotationMatrix2D((totalBlurStrength / 2 -0.5 , totalBlurStrength / 2 -0.5 ) , angle, 1.0), (totalBlurStrength, totalBlurStrength) )
+    effect = effect/totalBlurStrength
+    return cv.filter2D(img,-1,effect)
+
+
 ##################
 # EDGE FUNCTIONS #
 ##################
@@ -88,11 +112,11 @@ def erode(img,erosionStrength=7,iterations=3):
 #################################################
 # SIMPLE TRANSFORMATIONS/ROTATIONS/TRANSLATIONS #
 #################################################
-def resize(img,x,y):
-    return cv.resize(img,(x,y))
+def resize(img,size):
+    return cv.resize(img,(size,size))
 
-def crop(img,x,y,w,h):
-    return img[x:y,w:h]
+def crop(img,size):
+    return img[0:size,0:size]
 
 def translate(img,x,y):
     transMat = np.float32([[1,0,x],[0,1,y]])
@@ -110,6 +134,19 @@ def rotate(img,angle,rotPoint=None):
 def flip(img,code):
     return cv.flip(img,code)
 
+def rescale(img,scaleFactor,mask):
+    if(mask): 
+        background = np.zeros((IMAGE_SIZE, IMAGE_SIZE), dtype="uint8")
+        scaleFactor = scaleFactor*.95
+    else: background = np.zeros((IMAGE_SIZE, IMAGE_SIZE,3), dtype="uint8")
+    foreground = resize(img,round(scaleFactor*IMAGE_SIZE))
+    foreground_height = foreground.shape[0]
+    foreground_width = foreground.shape[1]
+    blended_portion = cv.addWeighted(foreground,1,background[:foreground_height,:foreground_width],0,0,background)
+    background[:foreground_height,:foreground_width] = blended_portion
+    translated = translate(background,(IMAGE_SIZE-foreground_width)/2,(IMAGE_SIZE-foreground_width)/2)
+    return translated
+
 ##########################
 # MASKS FOR GREEN SCREEN #
 ##########################
@@ -125,7 +162,7 @@ def applyMask(img,background,mask):
 ####################
 def readFile(filePath,size):
     img = cv.imread(filePath)
-    return resize(img,size,size)
+    return resize(img,size)
 
 def cleanEdges(mask):
     sharpen_kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
@@ -149,34 +186,35 @@ def randomNumber(low,high):
 # Generate Data #
 #################
 def generateData(img,background,numRun):
-    # Random Vars
-    scaleFactor = 4
-    randx = randomNumber(-IMAGE_SIZE/scaleFactor,IMAGE_SIZE/scaleFactor)
-    randy = randomNumber(-IMAGE_SIZE/scaleFactor,IMAGE_SIZE/scaleFactor)
-    randrot = randomNumber(0,360)
-    randblur = randomNumber(5,100)
-
-    # Create Output Folders
-    os.mkdir(OUTPUT_ROOT)
-    os.mkdir(OUTPUT_BLURRY)
-    os.mkdir(OUTPUT_SHARP)
-    os.mkdir(EXAMPLE_OUTPUT_ROOT)
-    os.mkdir(EXAMPLE_OUTPUT_BLURRY)
-    os.mkdir(EXAMPLE_OUTPUT_SHARP)
-
     # Generate Data
-    finalRunAmount = 5
-    exampleRunAmount = 3
+    finalRunAmount = 10
+    exampleRunAmount = 10
     for i in range(finalRunAmount):
-        transrotated = applyMask(rotate(translate(img,randx,randy),randrot),background,rotate(translate(mask(img),randx,randy),randrot))
+        # Random Vars
+        scaleFactor = 4
+        randx = randomNumber(-IMAGE_SIZE/scaleFactor,IMAGE_SIZE/scaleFactor)
+        randy = randomNumber(-IMAGE_SIZE/scaleFactor,IMAGE_SIZE/scaleFactor)
+        randrot = randomNumber(0,360)
+        randhorzblur = randomNumber(5,50)
+        randvertblur = randomNumber(5, 25)
+        randscale = randomNumber(15,100)/100
+
+        rescaledMask = rescale(mask(img),randscale,True)
+        rescaledImage = rescale(img,randscale,False)
+        result = applyMask(modifyImage(rescaledImage,randx,randy,randrot,randscale),background,modifyImage(rescaledMask,randx,randy,randrot,randscale))
         # Output Data
-        saveImage(OUTPUT_BLURRY,"blurry" + str((i+1)*numRun),transrotated)
-        saveImage(OUTPUT_SHARP,"sharp" + str((i+1)*numRun),gaussianBlur(transrotated,randblur))
+        saveImage(OUTPUT_BLURRY,"blurry" + str((i+1)*numRun),motionBlur(result,randhorzblur,randvertblur))
+        saveImage(OUTPUT_SHARP,"sharp" + str((i+1)*numRun),result)
         # Example Output Data
         if(i<exampleRunAmount):
-            saveImage(EXAMPLE_OUTPUT_BLURRY,"blurry" + str((i+1)*numRun),transrotated)
-            saveImage(EXAMPLE_OUTPUT_SHARP,"sharp" + str((i+1)*numRun),gaussianBlur(transrotated,randblur))
+            saveImage(EXAMPLE_OUTPUT_BLURRY,"blurry" + str((i+1)*numRun),motionBlur(result,randhorzblur,randvertblur))
+            saveImage(EXAMPLE_OUTPUT_SHARP,"sharp" + str((i+1)*numRun),result)
     return
+
+def modifyImage(img,randx,randy,randrot,randscale):
+    translated = translate(img,randx,randy)
+    rotated = rotate(translated,randrot)
+    return rotated
 
 ########
 # MAIN #
@@ -185,7 +223,17 @@ def main():
     images = importFiles(IMAGE_ROOT,IMAGE_BASE,FILE_TYPE,NUM_IMAGES)
     backgrounds = importFiles(BACKGROUND_ROOT,BACKGROUND_BASE,FILE_TYPE,NUM_BACKGROUNDS)
 
-    shutil.rmtree(EXAMPLE_OUTPUT_ROOT)
+    if(os.path.exists(EXAMPLE_OUTPUT_ROOT)):
+        shutil.rmtree(EXAMPLE_OUTPUT_ROOT)
+
+    # Create Output Folders
+    if(not os.path.exists(OUTPUT_ROOT)):
+        os.mkdir(OUTPUT_ROOT)
+        os.mkdir(OUTPUT_BLURRY)
+        os.mkdir(OUTPUT_SHARP)
+    os.mkdir(EXAMPLE_OUTPUT_ROOT)
+    os.mkdir(EXAMPLE_OUTPUT_BLURRY)
+    os.mkdir(EXAMPLE_OUTPUT_SHARP)
 
     # Final Case
     # numRun = 0
@@ -196,10 +244,10 @@ def main():
     #         background = readFile(backgrounds[j],IMAGE_SIZE)
     #         generateData(image,background,numRun)
 
-    # Test Case
+    # Test Case - TEMP
     numRun = 1 
-    image = readFile(images[3],IMAGE_SIZE)
-    background = readFile(backgrounds[5],IMAGE_SIZE)
+    image = readFile(images[6],IMAGE_SIZE)
+    background = readFile(backgrounds[1],IMAGE_SIZE)
     generateData(image,background,numRun)    
 
     shutil.make_archive(OUTPUT_ROOT, format="zip", root_dir=OUTPUT_ROOT)
