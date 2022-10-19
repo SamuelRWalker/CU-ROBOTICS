@@ -4,7 +4,7 @@ CU-ROBOTICS: Data Generator
 This program uses green screened images of armor plates and backgrounds in order to generate images emulating the look and distortion of our robots camera.
 
 [![License](https://img.shields.io/badge/License-CC0-lightgray.svg?style=flat-square)](https://creativecommons.org/publicdomain/zero/1.0/)
-[![Latest release](https://img.shields.io/github/v/release/mhucka/readmine.svg?style=flat-square&color=b44e88)](https://github.com/SamWalk19/CU-ROBOTICS/releases)
+[![Latest release](https://img.shields.io/github/v/release/SamWalk19/CU-ROBOTICS.svg?style=flat-square&color=b44e88)](https://github.com/SamWalk19/CU-ROBOTICS/releases)
 
 
 <!-- Table of contents
