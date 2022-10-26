@@ -1,0 +1,26 @@
+<annotation verified="yes">
+    <folder>folderName</folder>
+    <filename>fileName</filename>
+    <path>filePath</path>
+    <source>
+        <database>Unknown</database>
+    </source>
+    <size>
+        <width>widthhh</width>
+        <height>heighttt</height>
+        <depth>3</depth>
+    </size>
+    <segmented>0</segmented>
+    <object>
+        <name>color</name>
+        <pose>Unspecified</pose>
+        <truncated>0</truncated>
+        <difficult>0</difficult>
+        <bndbox>
+            <xmin>value</xmin>
+            <ymin>value</ymin>
+            <xmax>value</xmax>
+            <ymax>value</ymax>
+        </bndbox>
+    </object>
+</annotation>
