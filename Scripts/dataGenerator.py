@@ -4,6 +4,7 @@ import imageManipulation as im
 import masking as mask
 import labelGenerator as ig
 from skimage.measure import label, regionprops, find_contours
+import progressBar as pb
 import numpy as np
 import cv2 as cv
 import random
@@ -16,6 +17,7 @@ def generateData(img,background,numRun):
     # Generate Data
     finalRunAmount = 10
     exampleRunAmount = 10
+    numTotal = finalRunAmount*gv.NUM_IMAGES*gv.NUM_BACKGROUNDS
     for i in range(finalRunAmount):
         # Random Vars
         scaleFactor = 4
@@ -34,12 +36,12 @@ def generateData(img,background,numRun):
 
         xmlParams = {'folder':'placeholder','filename':str((i+1)*numRun),'path':'placeholder','width':str(gv.IMAGE_SIZE),'height':str(gv.IMAGE_SIZE),'color':'red','xmin':str(bboxes[0][0]),'ymin':str(bboxes[0][1]),'xmax':str(bboxes[0][2]),'ymax':str(bboxes[0][3])}
         # Output Data
-        saveData(gv.OUTPUT_BLURRY,str((i+1)*numRun),im.motionBlur(result,randhorzblur,randvertblur),xmlParams)
-        saveData(gv.OUTPUT_SHARP,str((i+1)*numRun),result,xmlParams)
+        saveData(gv.OUTPUT_BLURRY,(i+1)*numRun,im.motionBlur(result,randhorzblur,randvertblur),xmlParams,numTotal)
+        saveData(gv.OUTPUT_SHARP,(i+1)*numRun,result,xmlParams,numTotal)
         # Example Output Data
         if(i<exampleRunAmount):
-            saveData(gv.EXAMPLE_OUTPUT_BLURRY,str((i+1)*numRun),im.motionBlur(result,randhorzblur,randvertblur),xmlParams)
-            saveData(gv.EXAMPLE_OUTPUT_SHARP,str((i+1)*numRun),result,xmlParams)
+            saveData(gv.EXAMPLE_OUTPUT_BLURRY,(i+1)*numRun,im.motionBlur(result,randhorzblur,randvertblur),xmlParams,numTotal)
+            saveData(gv.EXAMPLE_OUTPUT_SHARP,(i+1)*numRun,result,xmlParams,numTotal)
     return
 
 def randomNumber(low,high):
@@ -50,11 +52,12 @@ def modifyImage(img,randx,randy,randrot):
     rotated = im.rotate(translated,randrot)
     return rotated
 
-def saveData(outputFolderName,outputFileName,img, xmlParams):
+def saveData(outputFolderName,numRun,img, xmlParams,numTotal):
     xmlParams['folder'] = outputFolderName.split('/')[1]
-    xmlParams['path'] = outputFolderName + outputFileName
-    cv.imwrite(outputFolderName + outputFileName + gv.FILE_TYPE,img)
-    ig.saveXML(outputFolderName,outputFileName ,xmlParams)
+    xmlParams['path'] = outputFolderName + str(numRun)
+    cv.imwrite(outputFolderName + str(numRun) + gv.FILE_TYPE,img)
+    ig.saveXML(outputFolderName,str(numRun) ,xmlParams)
+    pb.printProgressBar(numRun,numTotal, 'Saving Data: ')
     return
 
 def mask_to_border(mask):
@@ -71,7 +74,6 @@ def mask_to_border(mask):
 
 def mask_to_bbox(mask):
     bboxes = []
-
     mask = mask_to_border(mask)
     lbl = label(mask)
     props = regionprops(lbl)
