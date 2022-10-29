@@ -1,0 +1,26 @@
+<annotation verified="yes">
+    <folder>Sharp</folder>
+    <filename>4</filename>
+    <path>ExampleOutputData/Sharp/4</path>
+    <source>
+        <database>Unknown</database>
+    </source>
+    <size>
+        <width>512</width>
+        <height>512</height>
+        <depth>3</depth>
+    </size>
+    <segmented>0</segmented>
+    <object>
+        <name>red</name>
+        <pose>Unspecified</pose>
+        <truncated>0</truncated>
+        <difficult>0</difficult>
+        <bndbox>
+            <xmin>60</xmin>
+            <ymin>160</ymin>
+            <xmax>262</xmax>
+            <ymax>336</ymax>
+        </bndbox>
+    </object>
+</annotation>

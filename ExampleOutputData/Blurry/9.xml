@@ -1,0 +1,26 @@
+<annotation verified="yes">
+    <folder>Blurry</folder>
+    <filename>9</filename>
+    <path>ExampleOutputData/Blurry/9</path>
+    <source>
+        <database>Unknown</database>
+    </source>
+    <size>
+        <width>512</width>
+        <height>512</height>
+        <depth>3</depth>
+    </size>
+    <segmented>0</segmented>
+    <object>
+        <name>red</name>
+        <pose>Unspecified</pose>
+        <truncated>0</truncated>
+        <difficult>0</difficult>
+        <bndbox>
+            <xmin>244</xmin>
+            <ymin>179</ymin>
+            <xmax>410</xmax>
+            <ymax>369</ymax>
+        </bndbox>
+    </object>
+</annotation>

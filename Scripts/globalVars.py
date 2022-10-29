@@ -21,6 +21,6 @@ BACKGROUND_BASE = "Background"
 FILE_TYPE = ".jpg"
 
 # CONST GLOBALS
-IMAGE_SIZE = 700
+IMAGE_SIZE = 512
 NUM_IMAGES = len([entry for entry in os.listdir(IMAGE_ROOT) if os.path.isfile(os.path.join(IMAGE_ROOT, entry))])
 NUM_BACKGROUNDS= len([entry for entry in os.listdir(BACKGROUND_ROOT) if os.path.isfile(os.path.join(BACKGROUND_ROOT, entry))])

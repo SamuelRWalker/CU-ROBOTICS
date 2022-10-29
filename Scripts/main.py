@@ -10,11 +10,8 @@ import os
 ########
 #-Research Image Distortion from cameras and how to implement (openCV)
 #-Make console output to watch it make files
-#-Data labels for each image
-#-Improve upon the readme
 #-Create multiple armor plates on one image
-#-Get more source data
-#-Get different colored armor plates
+#-Get more source data (Different Colored Armor Plates)
 #-Create a GUI for selecting amount of files
 
 ###############
