@@ -17,7 +17,8 @@ def generateData(img,background,numRun):
     # Generate Data
     finalRunAmount = 10
     exampleRunAmount = 10
-    numTotal = finalRunAmount*gv.NUM_IMAGES*gv.NUM_BACKGROUNDS
+    numTotal = (finalRunAmount+exampleRunAmount)*gv.NUM_IMAGES*gv.NUM_BACKGROUNDS
+    if(gv.DEBUGGING): numTotal=exampleRunAmount
     for i in range(finalRunAmount):
         # Random Vars
         scaleFactor = 4
@@ -36,12 +37,14 @@ def generateData(img,background,numRun):
 
         xmlParams = {'folder':'placeholder','filename':str((i+1)*numRun),'path':'placeholder','width':str(gv.IMAGE_SIZE),'height':str(gv.IMAGE_SIZE),'color':'red','xmin':str(bboxes[0][0]),'ymin':str(bboxes[0][1]),'xmax':str(bboxes[0][2]),'ymax':str(bboxes[0][3])}
         # Output Data
-        saveData(gv.OUTPUT_BLURRY,(i+1)*numRun,im.motionBlur(result,randhorzblur,randvertblur),xmlParams,numTotal)
-        saveData(gv.OUTPUT_SHARP,(i+1)*numRun,result,xmlParams,numTotal)
+        saveData(gv.OUTPUT_BLURRY,(i+1)*numRun,im.motionBlur(result,randhorzblur,randvertblur),xmlParams)
+        saveData(gv.OUTPUT_SHARP,(i+1)*numRun,result,xmlParams)
         # Example Output Data
         if(i<exampleRunAmount):
-            saveData(gv.EXAMPLE_OUTPUT_BLURRY,(i+1)*numRun,im.motionBlur(result,randhorzblur,randvertblur),xmlParams,numTotal)
-            saveData(gv.EXAMPLE_OUTPUT_SHARP,(i+1)*numRun,result,xmlParams,numTotal)
+            saveData(gv.EXAMPLE_OUTPUT_BLURRY,(i+1)*numRun,im.motionBlur(result,randhorzblur,randvertblur),xmlParams)
+            saveData(gv.EXAMPLE_OUTPUT_SHARP,(i+1)*numRun,result,xmlParams)
+        currNum = (i+1)*numRun*4
+        pb.printProgressBar(currNum,numTotal*4, 'Saving Data: (' + str(currNum) + '/' + str(numTotal*4) + ') ')
     return
 
 def randomNumber(low,high):
@@ -52,12 +55,11 @@ def modifyImage(img,randx,randy,randrot):
     rotated = im.rotate(translated,randrot)
     return rotated
 
-def saveData(outputFolderName,numRun,img, xmlParams,numTotal):
+def saveData(outputFolderName,numRun,img, xmlParams):
     xmlParams['folder'] = outputFolderName.split('/')[1]
     xmlParams['path'] = outputFolderName + str(numRun)
     cv.imwrite(outputFolderName + str(numRun) + gv.FILE_TYPE,img)
     ig.saveXML(outputFolderName,str(numRun) ,xmlParams)
-    pb.printProgressBar(numRun,numTotal, 'Saving Data: ')
     return
 
 def mask_to_border(mask):

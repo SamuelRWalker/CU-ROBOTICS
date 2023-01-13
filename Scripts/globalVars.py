@@ -1,8 +1,13 @@
 import os
 
+from numpy import true_divide
+
 ####################
 # GLOBAL VARIABLES #
 ####################
+# DEBUG MODE
+DEBUGGING = True
+
 # OUTPUT
 OUTPUT_ROOT = "OutputData/"
 OUTPUT_BLURRY = OUTPUT_ROOT + "Blurry/"

@@ -4,6 +4,8 @@ import dataGenerator as dg
 import imageManipulation as im
 import shutil
 import os
+from settings import *
+from gui import *
 
 ########
 # TODO #
@@ -11,15 +13,17 @@ import os
 #-Research Image Distortion from cameras and how to implement (openCV)
 #-Make console output to watch it make files
 #-Create multiple armor plates on one image
-#-Get more source data (Different Colored Armor Plates)
+#-Get more source data 
+#-Different Colored Armor Plates (Source or Modified)
 #-Create a GUI for selecting amount of files
+#-AUTO GAN, Deep Nueral Net (Research)
 
 ###############
 # DESCRIPTION #
 ###############
 # Author: Sam Walker
 # Creation Date: 9/27/2022
-# Date: 10/25/2022
+# Date: 12/16/2022
 # Purpose: Create a dataset for computer vision AI for CU ROBOTICS
 # Description: Given green screened images output random dirty images with backgrounds
 
@@ -27,38 +31,42 @@ import os
 # MAIN #
 ########
 def main():
-    images = importFiles(gv.IMAGE_ROOT,gv.IMAGE_BASE,gv.FILE_TYPE,gv.NUM_IMAGES)
-    backgrounds = importFiles(gv.BACKGROUND_ROOT,gv.BACKGROUND_BASE,gv.FILE_TYPE,gv.NUM_BACKGROUNDS)
+    settings = gui()
+    print(settings)
 
-    if(os.path.exists(gv.EXAMPLE_OUTPUT_ROOT)):
-        shutil.rmtree(gv.EXAMPLE_OUTPUT_ROOT)
+    # images = importFiles(gv.IMAGE_ROOT,gv.IMAGE_BASE,gv.FILE_TYPE,gv.NUM_IMAGES)
+    # backgrounds = importFiles(gv.BACKGROUND_ROOT,gv.BACKGROUND_BASE,gv.FILE_TYPE,gv.NUM_BACKGROUNDS)
 
-    # Create Output Folders
-    if(not os.path.exists(gv.OUTPUT_ROOT)):
-        os.mkdir(gv.OUTPUT_ROOT)
-        os.mkdir(gv.OUTPUT_BLURRY)
-        os.mkdir(gv.OUTPUT_SHARP)
-    os.mkdir(gv.EXAMPLE_OUTPUT_ROOT)
-    os.mkdir(gv.EXAMPLE_OUTPUT_BLURRY)
-    os.mkdir(gv.EXAMPLE_OUTPUT_SHARP)
+    # if(os.path.exists(gv.EXAMPLE_OUTPUT_ROOT)):
+    #     shutil.rmtree(gv.EXAMPLE_OUTPUT_ROOT)
 
-    # Final Case
-    # numRun = 0
-    # for i in range(gv.NUM_IMAGES):
-    #     for j in range(gv.NUM_BACKGROUNDS):
-    #         numRun+=1
-    #         image = readFile(images[i],gv.IMAGE_SIZE)
-    #         background = readFile(backgrounds[j],gv.IMAGE_SIZE)
-    #         generateData(image,background,numRun)
+    # # Create Output Folders
+    # if(not os.path.exists(gv.OUTPUT_ROOT)):
+    #     os.mkdir(gv.OUTPUT_ROOT)
+    #     os.mkdir(gv.OUTPUT_BLURRY)
+    #     os.mkdir(gv.OUTPUT_SHARP)
+    # os.mkdir(gv.EXAMPLE_OUTPUT_ROOT)
+    # os.mkdir(gv.EXAMPLE_OUTPUT_BLURRY)
+    # os.mkdir(gv.EXAMPLE_OUTPUT_SHARP)
 
-    # Test Case - TEMP
-    numRun = 1 
-    image = readFile(images[6],gv.IMAGE_SIZE)
-    background = readFile(backgrounds[1],gv.IMAGE_SIZE)
-    dg.generateData(image,background,numRun)    
+    # # Final Case
+    # if(not gv.DEBUGGING):
+    #     numRun = 0
+    #     for i in range(gv.NUM_IMAGES):
+    #         for j in range(gv.NUM_BACKGROUNDS):
+    #             numRun+=1
+    #             image = readFile(images[i],gv.IMAGE_SIZE)
+    #             background = readFile(backgrounds[j],gv.IMAGE_SIZE)
+    #             dg.generateData(image,background,numRun)
+    # # Test Case - TEMP
+    # else:
+    #     numRun = 1 
+    #     image = readFile(images[6],gv.IMAGE_SIZE)
+    #     background = readFile(backgrounds[1],gv.IMAGE_SIZE)
+    #     dg.generateData(image,background,numRun)    
 
-    shutil.make_archive(gv.OUTPUT_ROOT, format="zip", root_dir=gv.OUTPUT_ROOT)
-    shutil.rmtree(gv.OUTPUT_ROOT)
+    # shutil.make_archive(gv.OUTPUT_ROOT, format="zip", root_dir=gv.OUTPUT_ROOT)
+    # shutil.rmtree(gv.OUTPUT_ROOT)
 
 ####################
 # HELPER FUNCTIONS #
